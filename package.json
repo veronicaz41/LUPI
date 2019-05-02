@@ -1,0 +1,16 @@
+{
+  "name": "lowest-unique-uint-game",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "compile": "truffle compile",
+    "migrate": "truffle migrate",
+    "test": "truffle test"
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "tabookey-gasless": "^0.3.3-a",
+    "truffle-hdwallet-provider": "^1.0.5"
+  }
+}
