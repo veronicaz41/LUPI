@@ -1,0 +1,27 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "build": "webpack --config webpack.prod.config.js",
+    "dev": "webpack-dev-server",
+    "start": "node ./server.js"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^4.6.0",
+    "webpack": "^4.28.1",
+    "webpack-cli": "^3.2.1",
+    "webpack-dev-server": "^3.1.14"
+  },
+  "dependencies": {
+    "@babel/core": "^7.4.4",
+    "babel-loader": "^8.0.5",
+    "express": "^4.16.4",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.2.0",
+    "tabookey-gasless": "^0.3.3-a",
+    "web3": "1.0.0-beta.35",
+    "web3-utils": "^1.0.0-beta.35"
+  }
+}
