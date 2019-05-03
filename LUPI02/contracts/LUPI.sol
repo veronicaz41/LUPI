@@ -2,7 +2,7 @@ pragma solidity ^0.5.0;
 
 import "tabookey-gasless/contracts/RelayRecipient.sol";
 
-contract LUPI is RelayReceipt {
+contract LUPI is RelayRecipient {
   uint256 ante = 0.001 ether;
 
   enum Stage { INIT, IN_PROGRESS, END }
@@ -129,7 +129,7 @@ contract LUPI is RelayReceipt {
     if (!hasWinner) {
       // Everybody lost. :-P  Just burn/bury the pot.
     } else {
-      emit GotWinnder(winner, pot);
+      emit GotWinner(winner, pot);
       winner.transfer(pot);
     }
     stage = Stage.END;

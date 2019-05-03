@@ -35,24 +35,14 @@ const App = {
     }
   },
 
-  // getInput: async function() {
-  //   const { getInput } = this.contract.methods;
-  //   const input = await getInput().call({from: this.account});
-  //
-  //   // TODO: if we haven't commit any input yet, this would show 0
-  //
-  //   const previousElement = document.getElementById("previous-input");
-  //   previousElement.innerHTML = input
-  // },
-
   startGame: async function() {
     const { start } = this.contract.methods;
-    this.setStatus("Starting... (please wait)");
+    this.setStatus("Starting... (please wait)", "start-status");
     try {
       const result = await start().send({from: this.account});
-      this.setStatus("Game started!");
+      this.setStatus("Game started!", "start-status");
     } catch (error) {
-      this.setStatus(error);
+      this.setStatus(error, "start-status");
     }
   },
 
@@ -63,17 +53,17 @@ const App = {
     const saltStr = document.getElementById("salt").value;
     const input = parseInt(inputStr);
     if (input == Infinity || String(input) !== inputStr || input <= 0) {
-      this.setStatus("Please input a positive integer");
+      this.setStatus("Please input a positive integer", "commit-status");
       return;
     }
-    const encryptedInput = web3.utils.soliditySha3(inputStr, nonceStr);
+    const encryptedInput = this.web3.utils.soliditySha3(inputStr, saltStr);
 
-    this.setStatus("Committing... (please wait)");
+    this.setStatus("Committing... (please wait)", "commit-status");
     try {
       const result = await commitInput(encryptedInput).send({from: this.account});
-      this.setStatus("Input committed!");
+      this.setStatus("Input committed!", "commit-status");
     } catch (error) {
-      this.setStatus(error);
+      this.setStatus(error, "commit-status");
     }
   },
 
@@ -83,32 +73,32 @@ const App = {
     const saltStr = document.getElementById("reveal-salt").value;
     const input = parseInt(inputStr);
     if (input == Infinity || String(input) !== inputStr || input <= 0) {
-      this.setStatus("Please input a positive integer");
+      this.setStatus("Please input a positive integer", "reveal-status");
       return;
     }
 
-    this.setStatus("Revealing... (please wait)");
+    this.setStatus("Revealing... (please wait)", "reveal-status");
     try {
       const result = await revealInput(inputStr, saltStr).send({from: this.account});
-      this.setStatus("Reveal completed!");
+      this.setStatus("Reveal completed!", "reveal-status");
     } catch (error) {
-      this.setStatus(error);
+      this.setStatus(error, "reveal-status");
     }
   },
 
   settle: async function() {
     const { settle } = this.contract.methods;
-    this.setStatus("Settling... (please wait)");
+    this.setStatus("Settling... (please wait)", "settle-status");
     try {
       const result = await settle().send({from: this.account});
-      this.setStatus("Game over!");
+      this.setStatus("Game over!", "settle-status");
     } catch (error) {
-      this.setStatus(error);
+      this.setStatus(error, "settle-status");
     }
   },
 
-  setStatus: (message) => {
-    const status = document.getElementById("status");
+  setStatus: (message, id) => {
+    const status = document.getElementById(id);
     status.innerHTML = message;
   },
 };
@@ -127,7 +117,7 @@ window.addEventListener("load", async () => {
       // User denied account access...
       console.warn("Please enable account access.")
     }
-  } else if (window.web3) {
+  // } else if (window.web3) {
     // legacy dapp browsers
     App.web3 = new Web3(web3.currentProvider);
   } else {

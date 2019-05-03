@@ -4,7 +4,7 @@
     <title>Lowest Unique Postive Integer Game</title>
     <style>
       .line {
-        margin-bottom: 16px;
+        padding-bottom: 16px;
       }
     </style>
   </head>
@@ -12,8 +12,8 @@
     <h1>Lowest Unique Postive Integer Game</h1>
     <div>
       <h3>Start a new game</h3>
-      <button type="submit" onClick="App.startGame()" class="line">Start</button>
-      <p id="status" class="line"></p>
+      <button type="submit" onClick="App.startGame()">Start</button>
+      <p id="start-status" class="line"></p>
     </div>
     <div>
       <h3>Input a positive integer</h3>
@@ -25,8 +25,8 @@
         <label for="salt">Salt (a random number, you need to input the same salt later for reveal):</label>
         <input type="number" id="salt" min="1" />
       </div>
-      <button type="submit" onClick="App.commitInput()" class="line">Commit</button>
-      <p id="status" class="line"></p>
+      <button type="submit" onClick="App.commitInput()">Commit</button>
+      <p id="commit-status" class="line"></p>
     </div>
     <div>
       <h3>Reveal your commit</h3>
@@ -38,13 +38,13 @@
         <label for="reveal-salt">Salt (the same salt you committed):</label>
         <input type="number" id="reveal-salt" min="1" />
       </div>
-      <button type="submit" onClick="App.revealInput()" class="line">Reveal</button>
-      <p id="status" class="line"></p>
+      <button type="submit" onClick="App.revealInput()">Reveal</button>
+      <p id="reveal-status" class="line"></p>
     </div>
     <div>
       <h3>Settle</h3>
-      <button type="submit" onClick="App.settle()" class="line">Settle</button>
-      <p id="status" class="line"></p>
+      <button type="submit" onClick="App.settle()">Settle</button>
+      <p id="settle-status" class="line"></p>
     </div>
     <script src="index.js"></script>
   </body>
