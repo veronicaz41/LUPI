@@ -6,6 +6,9 @@
       .line {
         padding-bottom: 16px;
       }
+      .hidden {
+        visibility: hidden;
+      }
     </style>
   </head>
   <body>
@@ -55,6 +58,11 @@
       <h3>Settle</h3>
       <button type="submit" onClick="App.settle()">Settle</button>
       <p id="settle-status" class="line"></p>
+    </div>
+    <div id="winner" class="hidden">
+      <h3>You won <span id="reward"></span> ether!</h3>
+      <button type="submit" onClick="App.withdrawReward()">Get reward</button>
+      <p id="withdraw-status" class="line"></p>
     </div>
     <script src="index.js"></script>
   </body>

@@ -29,8 +29,9 @@ const App = {
       // get accounts
       const accounts = await web3.eth.getAccounts();
       this.account = accounts[0];
-      //this.getBalance();
+      this.getBalance();
       this.getPhase();
+      this.getReward();
     } catch (error) {
       console.error("Could not connect to contract or chain.");
       console.error(error);
@@ -52,8 +53,20 @@ const App = {
     phaseElement.innerHTML = phases[phase];
   },
 
+  getReward: async function() {
+    const { getReward } = this.contract.methods;
+    const reward = await getReward().call({from: this.account});
+    if (reward > 0) {
+      const winnerElement = document.getElementById("winner");
+      winnerElement.classList.remove("hidden");
+      const rewardElement = document.getElementById("reward");
+      rewardElement.innerHTML = reward / 1E18;
+    }
+  },
+
   donateToPot: async function() {
     const { deposit } = this.contract.methods;
+    console.log(this.contract);
     this.setStatus("Depositing... (please wait)", "donate-status");
     try {
       this.web3.currentProvider.enable(false);
@@ -135,8 +148,22 @@ const App = {
       const result = await settle().send({from: this.account});
       this.setStatus("Game over!", "settle-status");
       this.getPhase();
+      this.getReward();
     } catch (error) {
       this.setStatus(error, "settle-status");
+    }
+  },
+
+  withdrawReward: async function() {
+    const { withdrawReward } = this.contract.methods;
+    this.setStatus("Withdrawing... (please wait)", "withdraw-status");
+    try {
+      const result = await withdrawReward().send({from: this.account});
+      this.setStatus("Congrats! Wtihdraw successful!", "withdraw-status");
+      const winnerElement = document.getElementById("winner");
+      winnerElement.classList.add("hidden");
+    } catch (error) {
+      this.setStatus(error, "withdraw-status");
     }
   },
 
