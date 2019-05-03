@@ -187,7 +187,7 @@ window.addEventListener("load", async () => {
       // User denied account access...
       console.warn("Please enable account access.")
     }
-  // } else if (window.web3) {
+  } else if (window.web3) {
     // legacy dapp browsers
     App.web3 = new Web3(web3.currentProvider);
   } else {

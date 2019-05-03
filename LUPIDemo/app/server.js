@@ -11,8 +11,4 @@ app.get('/', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'dist/index.html'));
 });
 
-app.get('/index.js', (req, res) => {
-  res.sendFile(path.resolve(__dirname, 'dist/index.js'));
-});
-
 app.listen(port);
