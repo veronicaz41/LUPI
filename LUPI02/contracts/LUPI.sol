@@ -4,6 +4,7 @@ import "tabookey-gasless/contracts/RelayRecipient.sol";
 
 contract LUPI is RelayRecipient {
   enum Stage { INIT, IN_PROGRESS, END }
+  enum Phase { NO_GAME, COMMIT, REVEAL, SETTLE}
 
   Stage public stage = Stage.INIT;
   address payable public owner = msg.sender;
@@ -183,5 +184,18 @@ contract LUPI is RelayRecipient {
 
   function getReward() public view returns (uint) {
     return rewards[get_sender()];
+  }
+
+  function getPhase() public view returns (uint) {
+    if (stage == Stage.INIT || stage == Stage.END) {
+      return Phase.NO_GAME;
+    }
+    if (block.number <= commitDeadline) {
+      return Phase.COMMIT;
+    } else if (block.number <= revealDeadline) {
+      return Phase.REVEAL;
+    } else {
+      return Phase.SETTLE;
+    }
   }
 }

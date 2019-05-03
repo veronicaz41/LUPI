@@ -10,6 +10,16 @@
   </head>
   <body>
     <h1>Lowest Unique Postive Integer Game</h1>
+    <p>Winner would get 1 ether </p>
+    <div>
+      <h3>Donate to pot (optional)</h3>
+      <p id="balance"></p>
+      <button type="submit" onClick="App.donateToPot()">Donate 1 ether</button>
+      <p id="donate-status" class="line"></p>
+    </div>
+    <div>
+      <h3 class="line">Game phase: <span id="phase"></span></h3>
+    </div>
     <div>
       <h3>Start a new game</h3>
       <button type="submit" onClick="App.startGame()">Start</button>
