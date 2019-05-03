@@ -3,23 +3,35 @@ pragma solidity ^0.5.0;
 import "tabookey-gasless/contracts/RelayRecipient.sol";
 
 contract LUPI is RelayRecipient {
-  uint256 ante = 0.001 ether;
-
   enum Stage { INIT, IN_PROGRESS, END }
-  Stage private stage;
+
+  Stage public stage = Stage.INIT;
+  address payable public owner = msg.sender;
+  uint public pot = 1 ether;
+  // Ropsten average block time 9.2 seconds
+  // 18 blocks is about 3 min
+  uint public commitDuration = 18;
+  uint public revealDuration = 18;
+  uint public balance;
+
   uint private commitDeadline;
   uint private revealDeadline;
 
-  uint256 private pot;
   address[] private players;
   mapping(address => bytes32) private blindedInputs;
-  mapping(address => uint256) private revealedInputs;
-  mapping(uint256 => uint) private counts;
+  mapping(address => uint) private revealedInputs;
+  mapping(uint => uint) private counts;
+  mapping(address => uint) private rewards;
 
   event CommitInput(address indexed user, bytes32 blindedInput);
   event BogusReveal(address indexed user);
-  event RevealInput(address indexed user, uint256 input);
-  event GotWinner(address indexed user, uint256 pot);
+  event RevealInput(address indexed user, uint input);
+  event GameOver(address indexed winner);
+
+  modifier onlyOwner() {
+    require(get_sender() == owner);
+    _;
+  }
 
   constructor(RelayHub hub) public {
     init_relay_hub(hub);
@@ -34,34 +46,61 @@ contract LUPI is RelayRecipient {
   function post_relayed_call(address relay, address from, bytes memory encoded_function, bool success, uint used_gas, uint transaction_fee ) public {
   }
 
-  function start() external {
-    if (stage != Stage.INIT) {
-      revert();
+  function setPot(uint _pot) external onlyOwner {
+    require(stage != Stage.IN_PROGRESS);
+    pot = _pot;
+  }
+
+  function setCommitDuration(uint _duration) external onlyOwner {
+    require(stage != Stage.IN_PROGRESS);
+    commitDuration = _duration;
+  }
+
+  function setRevealDuration(uint _duration) external onlyOwner {
+    require(stage != Stage.IN_PROGRESS);
+    revealDuration = _duration;
+  }
+
+  function withdraw(uint amount) external onlyOwner {
+    require(stage != Stage.IN_PROGRESS && amount <= balance);
+    balance -= amount;
+    owner.transfer(amount);
+  }
+
+  function deposit() payable external {
+    balance += msg.value;
+  }
+
+  function reset() private {
+    if (stage == Stage.INIT) {
+      return;
     }
-    commitDeadline = block.number + 12;
-    revealDeadline = commitDeadline + 12;
+    for (uint i = 0; i < players.length; i++) {
+      delete blindedInputs[players[i]];
+      delete revealedInputs[players[i]];
+    }
+    delete players;
+  }
+
+  function start() external onlyOwner {
+    require(stage != Stage.IN_PROGRESS && balance >= pot);
+    reset();
+    commitDeadline = block.number + commitDuration;
+    revealDeadline = commitDeadline + revealDuration;
     stage = Stage.IN_PROGRESS;
   }
 
-  function commitInput(bytes32 input) external payable {
-    if (stage != Stage.IN_PROGRESS || commitDeadline < block.number) {
-      revert();
-    }
-    if (msg.value < ante) {
-      revert();
-    }
-    pot += msg.value;
+  function commitInput(bytes32 input) external {
+    require(stage == Stage.IN_PROGRESS && block.number <= commitDeadline);
     players.push(get_sender());
     blindedInputs[get_sender()] = input;
     emit CommitInput(get_sender(), input);
   }
 
-  function revealInput(uint256 number, uint256 nonce) external {
-    if (stage != Stage.IN_PROGRESS
-       || block.number <= commitDeadline
-       || revealDeadline < block.number) {
-      revert();
-    }
+  function revealInput(uint number, uint nonce) external {
+    require(stage == Stage.IN_PROGRESS
+       && block.number > commitDeadline
+       && block.number <= revealDeadline);
     bytes32 blindedInput = blindedInputs[get_sender()];
     if (blindedInput != keccak256(abi.encodePacked(number, nonce))
       || number == 0) {
@@ -73,11 +112,11 @@ contract LUPI is RelayRecipient {
   }
 
   function computeWinner() private returns (bool has_winner, address payable winner) {
-    uint256 numDistinct = 0;
-    uint256[] memory distinctValues = new uint256[](players.length);
+    uint numDistinct = 0;
+    uint[] memory distinctValues = new uint[](players.length);
 
     for (uint i = 0; i < players.length; i++) {
-      uint256 val = revealedInputs[players[i]];
+      uint val = revealedInputs[players[i]];
       if (val == 0)
         continue;
       counts[val]++;
@@ -86,10 +125,10 @@ contract LUPI is RelayRecipient {
       }
     }
 
-    uint256 numUnique = 0;
-    uint256[] memory uniqueValues = new uint256[](numDistinct);
+    uint numUnique = 0;
+    uint[] memory uniqueValues = new uint[](numDistinct);
     for (uint i = 0; i < distinctValues.length; i++) {
-      uint256 val = distinctValues[i];
+      uint val = distinctValues[i];
       if (counts[val] == 1) {
         uniqueValues[numUnique++] = val;
       }
@@ -99,9 +138,9 @@ contract LUPI is RelayRecipient {
       return (false, address(0));
     }
 
-    uint256 minValue = uniqueValues[0];
+    uint minValue = uniqueValues[0];
     for (uint i = 1; i < uniqueValues.length; i++) {
-      uint256 val = uniqueValues[i];
+      uint val = uniqueValues[i];
       if (val < minValue) {
         minValue = val;
       }
@@ -120,22 +159,29 @@ contract LUPI is RelayRecipient {
   }
 
   function settle() external {
-    if (stage != Stage.IN_PROGRESS || block.number <= revealDeadline) {
-      revert();
-    }
+    require(stage == Stage.IN_PROGRESS && block.number > revealDeadline);
 
     (bool hasWinner, address payable winner) = computeWinner();
-
-    if (!hasWinner) {
-      // Everybody lost. :-P  Just burn/bury the pot.
-    } else {
-      emit GotWinner(winner, pot);
-      winner.transfer(pot);
-    }
+    emit GameOver(winner);
     stage = Stage.END;
+    if (hasWinner) {
+      balance -= pot;
+      rewards[winner] += pot;
+    }
   }
 
-  function getInput() public view returns (uint256) {
+  function withdrawReward() external {
+    uint reward = rewards[get_sender()];
+    rewards[get_sender()] = 0;
+    address payable addr = address(uint160(get_sender()));
+    addr.transfer(reward);
+  }
+
+  function getInput() public view returns (uint) {
     return revealedInputs[get_sender()];
+  }
+
+  function getReward() public view returns (uint) {
+    return rewards[get_sender()];
   }
 }

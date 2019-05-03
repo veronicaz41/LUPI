@@ -52,8 +52,13 @@ const App = {
     const inputStr = document.getElementById("input").value;
     const saltStr = document.getElementById("salt").value;
     const input = parseInt(inputStr);
+    const salt = parseInt(saltStr);
     if (input == Infinity || String(input) !== inputStr || input <= 0) {
       this.setStatus("Please input a positive integer", "commit-status");
+      return;
+    }
+    if (salt == Infinity || String(salt) != saltStr || salt <= 0) {
+      this.setStatus("Please input a positive integer for salt too", "commit-status");
       return;
     }
     const encryptedInput = this.web3.utils.soliditySha3(inputStr, saltStr);
@@ -72,14 +77,19 @@ const App = {
     const inputStr = document.getElementById("reveal-input").value;
     const saltStr = document.getElementById("reveal-salt").value;
     const input = parseInt(inputStr);
+    const salt = parseInt(saltStr);
     if (input == Infinity || String(input) !== inputStr || input <= 0) {
       this.setStatus("Please input a positive integer", "reveal-status");
+      return;
+    }
+    if (salt == Infinity || String(salt) != saltStr || salt <= 0) {
+      this.setStatus("Please input a positive integer for salt too", "commit-status");
       return;
     }
 
     this.setStatus("Revealing... (please wait)", "reveal-status");
     try {
-      const result = await revealInput(inputStr, saltStr).send({from: this.account});
+      const result = await revealInput(input, salt).send({from: this.account});
       this.setStatus("Reveal completed!", "reveal-status");
     } catch (error) {
       this.setStatus(error, "reveal-status");
