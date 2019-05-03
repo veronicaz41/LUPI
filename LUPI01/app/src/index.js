@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import LUPIBasicArtifact from "../../build/contracts/LUPIBasic.json";
+import LUPIRelayVersionArtifact from "../../build/contracts/LUPIRelayVersion.json";
 import { RelayProvider } from 'tabookey-gasless'
 
 const App = {
@@ -20,9 +20,9 @@ const App = {
     try {
       // get contract instance
       const networkId = await web3.eth.net.getId();
-      const deployedNetwork = LUPIBasicArtifact.networks[networkId];
+      const deployedNetwork = LUPIRelayVersionArtifact.networks[networkId];
       this.contract = new web3.eth.Contract(
-        LUPIBasicArtifact.abi,
+        LUPIRelayVersionArtifact.abi,
         deployedNetwork.address,
       );
 
@@ -40,6 +40,9 @@ const App = {
   getInput: async function() {
     const { getInput } = this.contract.methods;
     const input = await getInput().call({from: this.account});
+
+    // TODO: if we haven't commit any input yet, this would show 0
+
     const previousElement = document.getElementById("previous-input");
     previousElement.innerHTML = input
   },

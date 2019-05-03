@@ -3,7 +3,7 @@ pragma solidity ^0.5.0;
 import "tabookey-gasless/contracts/RelayRecipient.sol";
 
 // The most basic demo version
-contract LUPIBasic is RelayRecipient {
+contract LUPIRelayVersion is RelayRecipient {
   mapping(address => uint256) private userInputs;
 
   event CommitInput(address indexed user, uint256 input);
